@@ -112,7 +112,7 @@ http_headers = { "X-Kindlemcp-Smtp-Url" = "smtp://you%40gmail.com:APP_PASSWORD@s
 <code>%40</code> inside the SMTP URL (so <code>you@gmail.com</code> becomes
 <code>you%40gmail.com</code>).</p>
 
-<h2>Connect it &mdash; Option 2: Local (run it yourself)</h2>
+<h2>Connect it &mdash; Option 2: Local (run it yourself) <span class="tag">recommended</span></h2>
 <p>Prefer to keep everything on your machine? Install the package; nothing leaves
 your computer except the email to Amazon.</p>
 <pre><code># install (one of)
@@ -139,11 +139,23 @@ command as a stdio MCP server, e.g.
    text; you get it on your device under that title.</li>
 </ul>
 
-<h2>Is it safe?</h2>
-<p>The hosted endpoint is <b>multi-tenant</b>: every request carries its own
-Gmail + Kindle details, they are used only for that single send, and they are
-<b>never stored or logged</b>. The connection runs over HTTPS. If you would
-rather nothing pass through a shared server at all, use Option 2 (local).</p>
+<h2>Is it safe? What passes through this server?</h2>
+<p><b>Hosted option:</b> every time you send something, your request to this
+server carries three things:</p>
+<ul>
+ <li>your <b>Gmail login</b> (your email address + app password, inside the SMTP
+   URL),</li>
+ <li>your <b>Kindle address</b>,</li>
+ <li>the <b>document text</b> you are sending.</li>
+</ul>
+<p>The server uses them once to send that single email, then discards them &mdash;
+nothing is stored or logged, and the connection is HTTPS. But in that moment your
+Gmail app password does pass through this server, so you are trusting whoever runs
+it (like any hosted service).</p>
+<p><b>Local option (recommended):</b> with Option&nbsp;2 below, <b>nothing passes
+through this server at all</b> &mdash; your own computer logs in to Gmail directly
+and sends the mail. Use it if you would rather your credentials never leave your
+machine.</p>
 
 <h2>Troubleshooting</h2>
 <table>
