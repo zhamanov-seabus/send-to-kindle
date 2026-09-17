@@ -1,0 +1,6 @@
+tunnel: 0246f210-49f6-46ac-9bd4-b3edfdf383d1
+credentials-file: /Users/azamat/.cloudflared/0246f210-49f6-46ac-9bd4-b3edfdf383d1.json
+ingress:
+  - hostname: kindlemcp.itskills.kz
+    service: http://127.0.0.1:8861
+  - service: http_status:404

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.kindlemcp.web</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/azamat/code/send-to-kindle/.venv-serve/bin/kindlemcp-http</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/azamat/code/send-to-kindle</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>KINDLEMCP_PORT</key><string>8861</string>
+    <key>KINDLEMCP_PUBLIC_HOST</key><string>kindlemcp.itskills.kz</string>
+    <key>HOME</key><string>/Users/azamat</string>
+    <key>PATH</key><string>/Users/azamat/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/kindlemcp-web.out</string>
+  <key>StandardErrorPath</key><string>/tmp/kindlemcp-web.err</string>
+</dict>
+</plist>

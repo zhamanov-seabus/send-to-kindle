@@ -153,18 +153,30 @@ def _send_message(smtp_url: str, msg: EmailMessage) -> None:
         raise SendError(f"Failed to send email via {host}:{port}: {exc}") from exc
 
 
-def send_file(src: Path, title: str) -> SendResult:
+def send_file(
+    src: Path,
+    title: str,
+    *,
+    smtp_url: str | None = None,
+    kindle_addr: str | None = None,
+) -> SendResult:
     """Send an existing file (md/pdf/epub) to the configured Kindle address.
 
     Resolves config, prepares the attachment, and emails it. Raises the typed
     exceptions in this module (and :class:`ConfigError`) on failure.
+
+    ``smtp_url`` and ``kindle_addr`` may be passed explicitly to override the
+    normal env/file config resolution — this is how the multi-tenant HTTP
+    server threads per-request caller credentials through without ever storing
+    them. When either is ``None`` it falls back to :func:`resolve_smtp_url` /
+    :func:`resolve_kindle_addr`, preserving the stdio and CLI behavior.
     """
     src = Path(src)
     if not src.is_file():
         raise UnsupportedFileTypeError(f"File not found: {src}")
 
-    smtp_url = resolve_smtp_url()
-    kindle_addr = resolve_kindle_addr()
+    smtp_url = smtp_url if smtp_url else resolve_smtp_url()
+    kindle_addr = kindle_addr if kindle_addr else resolve_kindle_addr()
 
     attach_path, subtype, filename = prepare_attachment(src, title)
 
@@ -175,8 +187,18 @@ def send_file(src: Path, title: str) -> SendResult:
     return SendResult(title=title, filename=filename, kindle_addr=kindle_addr)
 
 
-def send_markdown(content: str, title: str) -> SendResult:
-    """Write Markdown ``content`` to a temp .md file, convert, and send."""
+def send_markdown(
+    content: str,
+    title: str,
+    *,
+    smtp_url: str | None = None,
+    kindle_addr: str | None = None,
+) -> SendResult:
+    """Write Markdown ``content`` to a temp .md file, convert, and send.
+
+    ``smtp_url`` / ``kindle_addr`` override config resolution when given; see
+    :func:`send_file`.
+    """
     tmp = Path(tempfile.mkdtemp()) / (safe_title(title) + ".md")
     tmp.write_text(content, encoding="utf-8")
-    return send_file(tmp, title)
+    return send_file(tmp, title, smtp_url=smtp_url, kindle_addr=kindle_addr)

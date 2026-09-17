@@ -159,6 +159,42 @@ def test_missing_file_raises(fake_smtp, tmp_path):
         send_file(tmp_path / "does_not_exist.pdf", "Ghost")
 
 
+def test_explicit_overrides_used_without_env(monkeypatch, tmp_path):
+    """Per-request smtp_url/kindle_addr override config, no env/files needed."""
+    monkeypatch.delenv("SMTP_URL", raising=False)
+    monkeypatch.delenv("KINDLE_ADDR", raising=False)
+    _FakeSMTP.sent = []
+    _FakeSMTP.logins = []
+    _FakeSMTP.hosts = []
+    monkeypatch.setattr(core.smtplib, "SMTP", _FakeSMTP)
+
+    other_smtp = "smtp://tenant%40outlook.com:secret_pw@smtp.office365.com:587"
+    other_kindle = "tenant_xyz789@kindle.com"
+
+    pdf = tmp_path / "r.pdf"
+    pdf.write_bytes(b"%PDF fake")
+    result = send_file(pdf, "Tenant Doc", smtp_url=other_smtp, kindle_addr=other_kindle)
+
+    assert result.kindle_addr == other_kindle
+    assert _FakeSMTP.hosts == [("smtp.office365.com", 587)]
+    assert _FakeSMTP.logins == [("tenant@outlook.com", "secret_pw")]
+    assert _FakeSMTP.sent[0]["To"] == other_kindle
+    assert _FakeSMTP.sent[0]["From"] == "tenant@outlook.com"
+
+
+def test_overrides_win_over_env(fake_smtp, tmp_path):
+    """When both env and explicit overrides exist, overrides take precedence."""
+    other_smtp = "smtp://tenant%40outlook.com:secret_pw@smtp.office365.com:587"
+    other_kindle = "tenant_xyz789@kindle.com"
+    pdf = tmp_path / "r.pdf"
+    pdf.write_bytes(b"%PDF fake")
+
+    result = send_file(pdf, "Doc", smtp_url=other_smtp, kindle_addr=other_kindle)
+
+    assert result.kindle_addr == other_kindle  # not the env KINDLE
+    assert fake_smtp.logins == [("tenant@outlook.com", "secret_pw")]
+
+
 @pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
 def test_real_pandoc_conversion(fake_smtp, tmp_path):
     """Runs the real pandoc md->epub path (no email; SMTP is mocked)."""

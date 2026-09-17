@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kindlemcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Send documents to a Kindle via Amazon Send-to-Kindle (email). CLI + MCP server."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,6 +22,9 @@ classifiers = [
 # (mcp.server.fastmcp.FastMCP), which was renamed in mcp 2.x.
 dependencies = [
     "mcp>=1.2.0,<2",
+    # The remote HTTP transport (kindlemcp-http) serves the MCP streamable-HTTP
+    # ASGI app with uvicorn. Starlette itself comes in transitively via mcp.
+    "uvicorn>=0.30",
 ]
 
 [project.optional-dependencies]
@@ -33,6 +36,7 @@ dev = [
 [project.scripts]
 kindlemcp-send = "kindlemcp.cli:main"
 kindlemcp = "kindlemcp.mcp_server:main"
+kindlemcp-http = "kindlemcp.http_server:main"
 
 [project.urls]
 Homepage = "https://github.com/zhamanov-seabus/send-to-kindle"
