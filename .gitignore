@@ -1,0 +1,13 @@
+# Secrets & local config — never commit
+.env
+*.kindle.conf
+kindle.conf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store

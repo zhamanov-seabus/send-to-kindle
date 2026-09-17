@@ -1,0 +1,3 @@
+# Your personal Send-to-Kindle address (Amazon > Preferences >
+# Personal Document Settings). Save the real file as ~/.kindle.conf
+KINDLE_ADDR=you_xxxxxx@kindle.com
