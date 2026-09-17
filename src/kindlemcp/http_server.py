@@ -27,7 +27,6 @@ import os
 import time
 from collections import deque
 from contextvars import ContextVar
-from pathlib import Path
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
@@ -35,7 +34,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from .core import KindleError, send_file, send_markdown
+from .core import KindleError, send_markdown
 
 SMTP_HEADER = "x-kindlemcp-smtp-url"
 KINDLE_HEADER = "x-kindlemcp-kindle-addr"
@@ -178,8 +177,7 @@ def build_server() -> FastMCP:
     def send_to_kindle(
         ctx: Context,
         title: str,
-        content: str | None = None,
-        file_path: str | None = None,
+        content: str,
     ) -> str:
         """Send a document to YOUR Kindle via Amazon Send-to-Kindle email.
 
@@ -194,19 +192,17 @@ def build_server() -> FastMCP:
         (Or a base64-JSON ``?config=`` query param with ``smtpUrl`` /
         ``kindleAddr``.)
 
-        Provide exactly one of ``content`` (Markdown text, converted to EPUB) or
-        ``file_path`` (a path to an .md/.pdf/.epub already on the server host).
+        ``content`` is Markdown text; it is converted to EPUB and delivered.
         ``title`` becomes the document name on the Kindle.
+
+        Note: unlike the local CLI/stdio server, this hosted endpoint does NOT
+        accept a server-side file path — a shared public server must never read
+        arbitrary files off the host. Send the document text as ``content``.
         """
         if not title or not title.strip():
             return "error: 'title' is required."
-
-        has_content = content is not None and content.strip() != ""
-        has_file = file_path is not None and file_path.strip() != ""
-        if has_content and has_file:
-            return "error: provide exactly one of 'content' or 'file_path', not both."
-        if not has_content and not has_file:
-            return "error: provide exactly one of 'content' or 'file_path'."
+        if content is None or content.strip() == "":
+            return "error: 'content' is required (Markdown text to send)."
 
         cfg = _caller_config(ctx)
         smtp_url = cfg.get("smtp_url")
@@ -221,20 +217,12 @@ def build_server() -> FastMCP:
             )
 
         try:
-            if has_file:
-                result = send_file(
-                    Path(file_path),  # type: ignore[arg-type]
-                    title,
-                    smtp_url=smtp_url,
-                    kindle_addr=kindle_addr,
-                )
-            else:
-                result = send_markdown(
-                    content,  # type: ignore[arg-type]
-                    title,
-                    smtp_url=smtp_url,
-                    kindle_addr=kindle_addr,
-                )
+            result = send_markdown(
+                content,
+                title,
+                smtp_url=smtp_url,
+                kindle_addr=kindle_addr,
+            )
         except KindleError as exc:
             return f"error: {exc}"
         except Exception as exc:  # noqa: BLE001 - never crash the server on a call

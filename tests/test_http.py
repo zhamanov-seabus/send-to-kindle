@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import json
+import shutil
 from email.message import EmailMessage
 
 import pytest
@@ -132,28 +133,30 @@ def test_tool_refuses_without_credentials(fake_smtp):
     assert not fake_smtp.sent  # nothing sent
 
 
-def test_tool_sends_with_per_request_creds(fake_smtp, tmp_path):
+@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
+def test_tool_sends_with_per_request_creds(fake_smtp):
     fn = _tool_fn()
-    pdf = tmp_path / "r.pdf"
-    pdf.write_bytes(b"%PDF fake")
     token = _request_config.set({"smtp_url": SMTP, "kindle_addr": KINDLE})
     try:
-        out = fn(_FakeCtx(), title="Rep", file_path=str(pdf))
+        out = fn(_FakeCtx(), title="Rep", content="# Hi\n\nBody.")
     finally:
         _request_config.reset(token)
-    assert out == f"Sent 'Rep' (r.pdf) to {KINDLE}"
+    # content is Markdown -> EPUB named after the title.
+    assert out == f"Sent 'Rep' (Rep.epub) to {KINDLE}"
     assert fake_smtp.logins == [("you@gmail.com", "app_pw")]
     assert fake_smtp.sent[0]["To"] == KINDLE
 
 
-def test_tool_validates_exactly_one_source(fake_smtp):
+def test_tool_requires_content(fake_smtp):
+    """The hosted tool takes only content; missing content/title is rejected."""
     fn = _tool_fn()
     token = _request_config.set({"smtp_url": SMTP, "kindle_addr": KINDLE})
     try:
-        assert "exactly one" in fn(_FakeCtx(), title="T").lower()
-        assert "title" in fn(_FakeCtx(), title="").lower()
+        assert "content" in fn(_FakeCtx(), title="T", content="").lower()
+        assert "title" in fn(_FakeCtx(), title="", content="# Hi").lower()
     finally:
         _request_config.reset(token)
+    assert not fake_smtp.sent
 
 
 def test_caller_config_reads_request_off_context(fake_smtp):
