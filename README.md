@@ -1,22 +1,44 @@
-# send-to-kindle
+# kindlemcp
 
-Send any document straight to your Kindle from the command line, via Amazon's
-**Send-to-Kindle** email service. Markdown is converted to EPUB with `pandoc`;
-PDF and EPUB files are sent as-is.
+Send any document straight to your Kindle, via Amazon's **Send-to-Kindle**
+email service. Ships as both a **command-line tool** and an **MCP server**, so
+you can send from a shell or straight from an AI assistant (Claude Desktop,
+Claude Code, etc.).
+
+Markdown is converted to EPUB with `pandoc`; PDF and EPUB files are sent as-is.
 
 No secrets live in the code — the Gmail SMTP credential and your Kindle address
-are read from local config files that are gitignored.
+are read from the environment or from local config files that are gitignored.
 
 ## Requirements
 
 - Python 3.10+
-- [`pandoc`](https://pandoc.org/) (only needed for Markdown input) — `brew install pandoc`
-- A Gmail account with a **App Password** (SMTP)
+- [`pandoc`](https://pandoc.org/) (only needed for Markdown input) — `brew install pandoc`.
+  `pandoc` is an external binary, not a Python dependency.
+- A Gmail account with an **App Password** (for SMTP).
 - Your **Send-to-Kindle** email address, and the Gmail sender added to your
-  Amazon *approved senders* list
-  (Amazon → *Preferences* → *Personal Document Settings*)
+  Amazon **approved senders** list (Amazon → *Preferences* → *Personal Document
+  Settings* → *Approved Personal Document E-mail List*). This is a one-time
+  step; documents from any other sender are silently dropped by Amazon.
 
-## Setup
+## Install
+
+```bash
+pipx install kindlemcp          # installs `kindlemcp` (MCP) and `kindlemcp-send` (CLI)
+# or run without installing:
+uvx --from kindlemcp kindlemcp-send --title "Note" report.md
+```
+
+For local development from a checkout:
+
+```bash
+python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+## Configuration
+
+Both values can come from the environment or a config file. Copy the examples:
 
 ```bash
 cp .env.example .env                 # fill in SMTP_URL
@@ -35,30 +57,89 @@ SMTP_URL=smtp://you%40gmail.com:your_app_password@smtp.gmail.com:587
 KINDLE_ADDR=you_xxxxxx@kindle.com
 ```
 
-Both files are in `.gitignore` and never committed.
+Both files are gitignored and never committed.
 
-## Usage
-
-```bash
-# Markdown -> EPUB -> Kindle
-./kindle_send.py --title "My Report" report.md
-
-# PDF or EPUB, sent as-is
-./kindle_send.py --title "My Report" report.pdf
-
-# Markdown from stdin
-echo "# Hello" | ./kindle_send.py --title "Quick Note"
-```
-
-The `--title` becomes the email subject, which Amazon uses as the document name
-on the Kindle.
-
-## Config resolution order
+### Config resolution order
 
 | Setting | Looked up in order |
 |---|---|
 | `SMTP_URL` | env var → `./.env` → `~/.kindle.env` → `~/code/aicourse/.env` (legacy) |
 | `KINDLE_ADDR` | env var → `./kindle.conf` → `~/.kindle.conf` |
+
+## CLI usage
+
+```bash
+# Markdown -> EPUB -> Kindle
+kindlemcp-send --title "My Report" report.md
+
+# PDF or EPUB, sent as-is
+kindlemcp-send --title "My Report" report.pdf
+
+# Markdown from stdin
+echo "# Hello" | kindlemcp-send --title "Quick Note"
+```
+
+`--title` becomes the email subject, which Amazon uses as the document name on
+the Kindle.
+
+The old `./kindle_send.py` script still works — it is now a thin shim that calls
+the package.
+
+## MCP server
+
+The `kindlemcp` command runs an MCP server over stdio exposing a single tool:
+
+- **`send_to_kindle(title, content?, file_path?)`** — provide exactly one of
+  `content` (Markdown text, converted to EPUB) or `file_path` (an existing
+  `.md` / `.pdf` / `.epub` file). Returns a human-readable status string.
+
+### Claude Desktop / `.mcp.json`
+
+Add this to your MCP client config (Claude Desktop `claude_desktop_config.json`,
+or a project `.mcp.json` for Claude Code):
+
+```json
+{
+  "mcpServers": {
+    "kindlemcp": {
+      "command": "uvx",
+      "args": ["--from", "kindlemcp", "kindlemcp"],
+      "env": {
+        "SMTP_URL": "smtp://you%40gmail.com:your_app_password@smtp.gmail.com:587",
+        "KINDLE_ADDR": "you_xxxxxx@kindle.com"
+      }
+    }
+  }
+}
+```
+
+If you installed with `pipx`, use the installed command directly instead:
+
+```json
+{
+  "mcpServers": {
+    "kindlemcp": {
+      "command": "kindlemcp",
+      "env": {
+        "SMTP_URL": "smtp://you%40gmail.com:your_app_password@smtp.gmail.com:587",
+        "KINDLE_ADDR": "you_xxxxxx@kindle.com"
+      }
+    }
+  }
+}
+```
+
+You can omit the `env` block and rely on the config files above instead. Either
+way, the Gmail sender in `SMTP_URL` must be on your Amazon approved-senders
+list, and `pandoc` must be on `PATH` for Markdown conversion.
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+python -m pytest      # tests mock SMTP — they never send a real email
+ruff check .
+```
 
 ## License
 
