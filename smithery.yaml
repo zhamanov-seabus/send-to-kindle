@@ -1,0 +1,29 @@
+# Smithery configuration for kindlemcp (local stdio server).
+# Lets Smithery install/run the published PyPI package with the user's config.
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - smtpUrl
+      - kindleAddr
+    properties:
+      smtpUrl:
+        type: string
+        title: SMTP URL
+        description: >-
+          Gmail SMTP credential, e.g.
+          smtp://you%40gmail.com:app_password@smtp.gmail.com:587
+      kindleAddr:
+        type: string
+        title: Kindle address
+        description: Your Send-to-Kindle address, e.g. you_xxxxxx@kindle.com
+  commandFunction: |-
+    (config) => ({
+      command: 'uvx',
+      args: ['--from', 'kindlemcp', 'kindlemcp'],
+      env: {
+        SMTP_URL: config.smtpUrl,
+        KINDLE_ADDR: config.kindleAddr
+      }
+    })

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.zhamanov-seabus/kindlemcp",
+  "description": "Send documents (Markdown/PDF/EPUB) to a Kindle via Amazon Send-to-Kindle email. CLI + MCP server.",
+  "repository": {
+    "url": "https://github.com/zhamanov-seabus/send-to-kindle",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registry_type": "pypi",
+      "identifier": "kindlemcp",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" },
+      "environment_variables": [
+        {
+          "name": "SMTP_URL",
+          "description": "Gmail SMTP credential, e.g. smtp://you%40gmail.com:app_password@smtp.gmail.com:587",
+          "is_required": true,
+          "is_secret": true
+        },
+        {
+          "name": "KINDLE_ADDR",
+          "description": "Your Send-to-Kindle address, e.g. you_xxxxxx@kindle.com",
+          "is_required": true
+        }
+      ]
+    }
+  ]
+}
