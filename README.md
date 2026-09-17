@@ -7,8 +7,28 @@ Claude Code, etc.).
 
 Markdown is converted to EPUB with `pandoc`; PDF and EPUB files are sent as-is.
 
-No secrets live in the code — the Gmail SMTP credential and your Kindle address
+No secrets live in the code: the Gmail SMTP credential and your Kindle address
 are read from the environment or from local config files that are gitignored.
+
+## Why
+
+Long AI answers, articles and PDFs are tiring to read on a glaring screen.
+kindlemcp puts them on your Kindle, so you read on calm, eye-friendly e-ink
+instead of another bright display.
+
+| The problem | The fix |
+|:---:|:---:|
+| ![Screen fatigue](docs/problem-screen-fatigue.jpg) | ![Reading on Kindle](docs/solution-eink-reading.jpg) |
+| Squinting at long text on a bright screen | The same content, on your Kindle |
+
+## How it works
+
+kindlemcp runs on your own machine. Your AI assistant (or the CLI) calls it, it
+converts Markdown to a clean EPUB (PDF and EPUB pass through), and emails the
+document to your Kindle through your own Gmail. Your credentials never leave your
+computer.
+
+![kindlemcp architecture](docs/architecture.png)
 
 ## Requirements
 
