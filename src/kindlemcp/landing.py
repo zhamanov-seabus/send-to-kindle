@@ -1,8 +1,7 @@
 """Landing page HTML served at ``/`` by the hosted MCP server.
 
-Kept in its own module so the server code stays small. This is a public,
-beginner-friendly explainer + copy-paste setup for the hosted endpoint and the
-local package.
+The hosted endpoint is info-only: it never sends documents or handles
+credentials. This page explains what kindlemcp is and how to run it locally.
 """
 
 from __future__ import annotations
@@ -33,6 +32,8 @@ INDEX_HTML = """<!doctype html>
  pre code{background:none;padding:0}
  .card{background:#111827;border:1px solid #1f2937;border-radius:12px;
    padding:16px 20px;margin:16px 0}
+ .note{background:#0f1b2e;border:1px solid #1e3a5f;border-radius:12px;
+   padding:14px 18px;margin:16px 0;color:#cbd5e1}
  .steps{counter-reset:s;list-style:none;padding:0;margin:0}
  .steps li{position:relative;padding:0 0 .9em 2.2em;margin:0}
  .steps li::before{counter-increment:s;content:counter(s);position:absolute;
@@ -44,8 +45,6 @@ INDEX_HTML = """<!doctype html>
    vertical-align:top}
  th{color:#93c5fd}
  .muted{color:#94a3b8}
- .pill{display:inline-block;background:#0f172a;border:1px solid #1f2937;
-   border-radius:8px;padding:2px 8px;font-size:.8rem;margin-right:6px}
  footer{margin-top:3em;padding-top:1.2em;border-top:1px solid #1f2937;
    color:#94a3b8;font-size:.9rem}
 </style></head><body><div class="wrap">
@@ -54,9 +53,13 @@ INDEX_HTML = """<!doctype html>
 <p class="lead">Send any document to your Kindle from an AI assistant or the
 command line. You give it text, a PDF, or an EPUB &mdash; it emails it to your
 Kindle, and a minute later it is in your library.</p>
-<p class="muted">This page is the endpoint's home. The service itself is an API
-for AI clients (Claude, Codex, Gemini), not a clickable web app &mdash; you use
-it from your assistant after a one-time setup below.</p>
+
+<div class="note">
+ <b>This site is just the project home.</b> The hosted endpoint here does
+ <b>not</b> send documents and <b>never handles your credentials</b> &mdash;
+ nothing (no password, no document) passes through this server. You run kindlemcp
+ <b>on your own machine</b>, where your Gmail details stay local. Setup is below.
+</div>
 
 <h2>What you get</h2>
 <ul>
@@ -67,12 +70,12 @@ it from your assistant after a one-time setup below.</p>
 </ul>
 
 <h2>Before you start (one time, ~5 min)</h2>
-<p>You need three things from your own accounts. kindlemcp never stores them.</p>
+<p>You need three things from your own accounts. They stay on your machine.</p>
 <ol class="steps">
- <li><b>A Gmail App Password.</b> In your Google Account &rarr; Security &rarr;
-   2-Step Verification &rarr; <b>App passwords</b>, create one. It is a 16-character
-   code used only by apps &mdash; not your normal Gmail password.</li>
- <li><b>Your Kindle email address.</b> On Amazon &rarr; <i>Manage Your Content and
+ <li><b>A Gmail App Password.</b> Google Account &rarr; Security &rarr; 2-Step
+   Verification &rarr; <b>App passwords</b>. A 16-character code used only by
+   apps &mdash; not your normal Gmail password.</li>
+ <li><b>Your Kindle email address.</b> Amazon &rarr; <i>Manage Your Content and
    Devices</i> &rarr; <i>Preferences</i> &rarr; <b>Personal Document Settings</b>.
    It looks like <code>you_ab12cd@kindle.com</code>.</li>
  <li><b>Approve your sender.</b> On that same Amazon page, add your Gmail address
@@ -81,100 +84,74 @@ it from your assistant after a one-time setup below.</p>
    document does not arrive.</li>
 </ol>
 
-<h2>Connect it &mdash; Option 1: Hosted (no install)</h2>
-<p>Use this public endpoint directly. You pass <b>your own</b> credentials in the
-headers; they are used only for that one request and never stored. Add the block
-for your client, then restart it.</p>
-
-<h3>Claude Desktop / Claude Code &middot; Gemini CLI <span class="pill">JSON</span></h3>
-<p class="muted">Claude Desktop: <code>claude_desktop_config.json</code> &middot;
-Claude Code: project <code>.mcp.json</code> &middot;
-Gemini CLI: <code>~/.gemini/settings.json</code></p>
-<pre><code>{
-  "mcpServers": {
-    "kindlemcp": {
-      "type": "http",
-      "url": "https://kindlemcp.itskills.kz/mcp",
-      "headers": {
-        "X-Kindlemcp-Smtp-Url": "smtp://you%40gmail.com:APP_PASSWORD@smtp.gmail.com:587",
-        "X-Kindlemcp-Kindle-Addr": "you_ab12cd@kindle.com"
-      }
-    }
-  }
-}</code></pre>
-
-<h3>OpenAI Codex CLI <span class="pill">TOML</span></h3>
-<p class="muted">File: <code>~/.codex/config.toml</code></p>
-<pre><code>[mcp_servers.kindlemcp]
-url = "https://kindlemcp.itskills.kz/mcp"
-http_headers = { "X-Kindlemcp-Smtp-Url" = "smtp://you%40gmail.com:APP_PASSWORD@smtp.gmail.com:587", "X-Kindlemcp-Kindle-Addr" = "you_ab12cd@kindle.com" }</code></pre>
-<p class="muted">Note: write <code>@</code> in the Gmail address as
-<code>%40</code> inside the SMTP URL (so <code>you@gmail.com</code> becomes
-<code>you%40gmail.com</code>).</p>
-
-<h2>Connect it &mdash; Option 2: Local (run it yourself) <span class="tag">recommended</span></h2>
-<p>Prefer to keep everything on your machine? Install the package; nothing leaves
-your computer except the email to Amazon.</p>
+<h2>Install &amp; connect (local)</h2>
+<p>Everything runs on your computer. Nothing goes through this server.</p>
 <pre><code># install (one of)
 pipx install kindlemcp
 uvx --from kindlemcp kindlemcp        # run without installing
 
-# tell it your creds once (env, or a .env file)
+# tell it your creds once (env, or a .env file next to you)
 export SMTP_URL="smtp://you%40gmail.com:APP_PASSWORD@smtp.gmail.com:587"
 export KINDLE_ADDR="you_ab12cd@kindle.com"
 
 # use the CLI directly
 kindlemcp-send --title "My Report" report.pdf
 echo "# Hello" | kindlemcp-send --title "Quick Note"</code></pre>
-<p>To connect the local server to an assistant, register the <code>kindlemcp</code>
-command as a stdio MCP server, e.g.
-<code>claude mcp add kindlemcp -e SMTP_URL=... -e KINDLE_ADDR=... -- uvx --from kindlemcp kindlemcp</code>
-(the same works for <code>codex mcp add</code> and <code>gemini mcp add</code>).</p>
+<p class="muted">Write <code>@</code> in the Gmail address as <code>%40</code>
+inside the SMTP URL (so <code>you@gmail.com</code> &rarr;
+<code>you%40gmail.com</code>). Markdown conversion needs
+<code>pandoc</code> (<code>brew install pandoc</code>); PDF/EPUB do not.</p>
 
-<h2>How to use it (once connected)</h2>
-<ul>
- <li>In your assistant: <i>&ldquo;Send this article to my Kindle&rdquo;</i> or
-   <i>&ldquo;Write a 1-page summary of X and send it to my Kindle.&rdquo;</i></li>
- <li>The assistant calls the <code>send_to_kindle</code> tool with a title and the
-   text; you get it on your device under that title.</li>
-</ul>
+<h3>Connect it to your AI assistant (local MCP)</h3>
+<p>Register the local <code>kindlemcp</code> command as an MCP server &mdash; one
+line, and your credentials stay on your machine:</p>
+<pre><code># Claude Code
+claude mcp add kindlemcp -e SMTP_URL=... -e KINDLE_ADDR=... -- uvx --from kindlemcp kindlemcp
 
-<h2>Is it safe? What passes through this server?</h2>
-<p><b>Hosted option:</b> every time you send something, your request to this
-server carries three things:</p>
-<ul>
- <li>your <b>Gmail login</b> (your email address + app password, inside the SMTP
-   URL),</li>
- <li>your <b>Kindle address</b>,</li>
- <li>the <b>document text</b> you are sending.</li>
-</ul>
-<p>The server uses them once to send that single email, then discards them &mdash;
-nothing is stored or logged, and the connection is HTTPS. But in that moment your
-Gmail app password does pass through this server, so you are trusting whoever runs
-it (like any hosted service).</p>
-<p><b>Local option (recommended):</b> with Option&nbsp;2 below, <b>nothing passes
-through this server at all</b> &mdash; your own computer logs in to Gmail directly
-and sends the mail. Use it if you would rather your credentials never leave your
-machine.</p>
+# OpenAI Codex CLI
+codex mcp add kindlemcp -- uvx --from kindlemcp kindlemcp
+
+# Gemini CLI
+gemini mcp add kindlemcp uvx --from kindlemcp kindlemcp</code></pre>
+<p>Or add it by hand to your client config (Claude Desktop
+<code>claude_desktop_config.json</code>, or a project <code>.mcp.json</code>):</p>
+<pre><code>{
+  "mcpServers": {
+    "kindlemcp": {
+      "command": "uvx",
+      "args": ["--from", "kindlemcp", "kindlemcp"],
+      "env": {
+        "SMTP_URL": "smtp://you%40gmail.com:APP_PASSWORD@smtp.gmail.com:587",
+        "KINDLE_ADDR": "you_ab12cd@kindle.com"
+      }
+    }
+  }
+}</code></pre>
+<p>Then just say <i>&ldquo;send this to my Kindle&rdquo;</i> in your assistant.</p>
+
+<h2>Is it safe?</h2>
+<p><b>Yes &mdash; because your credentials never leave your computer.</b> kindlemcp
+runs locally: it logs in to Gmail directly from your machine and sends the mail.
+The public server at this domain is only a landing page and a health check; it
+does not send documents and does not receive or store anyone's password.</p>
 
 <h2>Troubleshooting</h2>
 <table>
  <tr><th>Symptom</th><th>Fix</th></tr>
  <tr><td>Document never arrives on the Kindle</td><td>Your Gmail is not in Amazon's
    <b>Approved</b> senders list. Add it (see step 3).</td></tr>
- <tr><td>&ldquo;missing credentials&rdquo; error</td><td>The headers/env with
-   <code>SMTP_URL</code> and <code>KINDLE_ADDR</code> are missing or misspelled.</td></tr>
+ <tr><td>&ldquo;SMTP_URL / KINDLE_ADDR not set&rdquo;</td><td>The env vars (or
+   <code>.env</code>) are missing or misspelled.</td></tr>
  <tr><td>&ldquo;Failed to send email&rdquo;</td><td>Wrong Gmail App Password, or you
    used your normal password. Create a fresh App Password.</td></tr>
- <tr><td>Markdown did not convert</td><td>Local use only: install
-   <code>pandoc</code> (<code>brew install pandoc</code>). Not needed for PDF/EPUB.</td></tr>
+ <tr><td>Markdown did not convert</td><td>Install <code>pandoc</code>
+   (<code>brew install pandoc</code>). Not needed for PDF/EPUB.</td></tr>
 </table>
 
 <footer>
  Open source: <a href="https://github.com/zhamanov-seabus/send-to-kindle">github.com/zhamanov-seabus/send-to-kindle</a>
  &middot; PyPI: <code>pipx install kindlemcp</code>
  &middot; Health: <a href="/health">/health</a>
- &middot; MCP endpoint: <code>/mcp</code>
 </footer>
 
 </div></body></html>
