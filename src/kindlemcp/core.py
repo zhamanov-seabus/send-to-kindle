@@ -178,5 +178,5 @@ def send_file(src: Path, title: str) -> SendResult:
 def send_markdown(content: str, title: str) -> SendResult:
     """Write Markdown ``content`` to a temp .md file, convert, and send."""
     tmp = Path(tempfile.mkdtemp()) / (safe_title(title) + ".md")
-    tmp.write_text(content)
+    tmp.write_text(content, encoding="utf-8")
     return send_file(tmp, title)
