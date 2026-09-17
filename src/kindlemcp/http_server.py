@@ -62,7 +62,8 @@ _INDEX_HTML = """<!doctype html>
  .tag{color:#93c5fd;font-weight:600}
  code{background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:.9em}
  a{color:#7dd3fc}
- .card{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:16px 20px;margin:18px 0}
+ .card{background:#111827;border:1px solid #1f2937;border-radius:10px;
+   padding:16px 20px;margin:18px 0}
  .muted{color:#94a3b8;font-size:.92rem}
 </style></head><body>
 <h1>kindlemcp <span class="tag">MCP server</span></h1>
