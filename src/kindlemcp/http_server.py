@@ -35,6 +35,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
 from .core import KindleError, send_markdown
+from .landing import INDEX_HTML
 
 SMTP_HEADER = "x-kindlemcp-smtp-url"
 KINDLE_HEADER = "x-kindlemcp-kindle-addr"
@@ -50,51 +51,6 @@ _request_config: ContextVar[dict[str, str] | None] = ContextVar(
     "_request_config", default=None
 )
 
-_INDEX_HTML = """<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>kindlemcp</title>
-<style>
- :root{color-scheme:light dark}
- body{margin:0;font:16px/1.6 system-ui,-apple-system,Segoe UI,Arial,sans-serif;
-   background:#0b1020;color:#e5e7eb;padding:8vh 6vw;max-width:760px;margin:0 auto}
- h1{font-size:2rem;margin:0 0 .2em}
- .tag{color:#93c5fd;font-weight:600}
- code{background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:.9em}
- a{color:#7dd3fc}
- .card{background:#111827;border:1px solid #1f2937;border-radius:10px;
-   padding:16px 20px;margin:18px 0}
- .muted{color:#94a3b8;font-size:.92rem}
-</style></head><body>
-<h1>kindlemcp <span class="tag">MCP server</span></h1>
-<p>Send documents to a Kindle via Amazon Send-to-Kindle. This is an API endpoint
-for AI assistants (Claude, Codex, Gemini) &mdash; not a website.</p>
-<div class="card">
- <b>Endpoints</b><br>
- <code>/mcp</code> &mdash; the MCP endpoint (used by AI clients)<br>
- <code>/health</code> &mdash; <a href="/health">status check</a>
-</div>
-<div class="card">
- <b>Connect (HTTP MCP)</b>
- <pre><code>{
-  "mcpServers": {
-    "kindlemcp": {
-      "type": "http",
-      "url": "https://kindlemcp.itskills.kz/mcp",
-      "headers": {
-        "X-Kindlemcp-Smtp-Url": "smtp://you%40gmail.com:app_password@smtp.gmail.com:587",
-        "X-Kindlemcp-Kindle-Addr": "you_xxx@kindle.com"
-      }
-    }
-  }
-}</code></pre>
- <p class="muted">Multi-tenant: you supply your own Gmail SMTP + Kindle address
- per request; they are used only for that call and never stored.</p>
-</div>
-<p class="muted">Also on PyPI: <code>pipx install kindlemcp</code> &middot;
- <a href="https://github.com/zhamanov-seabus/send-to-kindle">source</a></p>
-</body></html>
-"""
 
 
 def _decode_config_query(raw: str) -> dict[str, str]:
@@ -282,7 +238,7 @@ def build_server() -> FastMCP:
 
     @mcp.custom_route("/", methods=["GET"])
     async def index(_request: Request) -> HTMLResponse:
-        return HTMLResponse(_INDEX_HTML)
+        return HTMLResponse(INDEX_HTML)
 
     return mcp
 
